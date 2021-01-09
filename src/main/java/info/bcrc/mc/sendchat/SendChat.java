@@ -19,6 +19,8 @@ import org.bukkit.event.player.PlayerAdvancementDoneEvent;
 import org.bukkit.event.player.PlayerCommandPreprocessEvent;
 import org.bukkit.event.server.ServerCommandEvent;
 import org.bukkit.configuration.file.FileConfiguration;
+import org.bukkit.ChatColor;
+import org.bukkit.Color;
 import org.bukkit.command.Command;
 import org.bukkit.command.CommandSender;
 import org.bukkit.command.TabCompleter;
@@ -122,7 +124,8 @@ public final class SendChat extends JavaPlugin implements Listener, TabCompleter
     rawUrl = config.getString("destination.url").trim();
     // disable the plugin when url is blank
     if (rawUrl == "") {
-      getLogger().warning("URL for message posting is invalid. SendChat will be disabled until you provide a valid link and restart/reload the server!");
+      getLogger().warning("URL for message posting is invalid. ");
+      getLogger().warning("SendChat will be disabled until you provide a valid link and restart/reload the server!");
       disableSendChat();
       return false;
     };
@@ -159,7 +162,7 @@ public final class SendChat extends JavaPlugin implements Listener, TabCompleter
           config = getConfig();
           loadSCConfig();
           if (processUrl()) {
-            sender.sendMessage("SendChat v" + version + " reloaded successfully!");
+            sender.sendMessage(ChatColor.GREEN + "SendChat v" + version + " reloaded successfully!");
             postChat(config.getString("plugin-reload").trim().replaceAll(verPH, version));
           };
         } else if (args[0].equalsIgnoreCase("shutdown")) {
@@ -168,8 +171,8 @@ public final class SendChat extends JavaPlugin implements Listener, TabCompleter
             postChat(config.getString("plugin-shutdown").trim().replaceAll(verPH, version));
             disableSendChat();
           } else {
-            sender.sendMessage("Note once shut down the plugin cannot be reactivated unless you reload the server!");
-            sender.sendMessage("Use /sendchat shutdown confirm to confirm shutting it down.");
+            sender.sendMessage(ChatColor.RED + "Note once shut down the plugin cannot be reactivated unless you reload the server!");
+            sender.sendMessage(ChatColor.RED + "Use /sendchat shutdown confirm to confirm shutting it down.");
           };
         } else {
           return false;
@@ -203,28 +206,38 @@ public final class SendChat extends JavaPlugin implements Listener, TabCompleter
   
   @EventHandler
   public void onPlayerChat(AsyncPlayerChatEvent event) {
-    postChat(rawChat.replaceAll(playerPH, event.getPlayer().getName()).replaceAll(chatPH, event.getMessage().replace("\\", "\\\\")));
+    postChat(rawChat.replaceAll(playerPH, event.getPlayer().getName())
+        .replaceAll(chatPH, event.getMessage().replace("\\", "\\\\")));
   }
   
   @EventHandler
   public void onAdvancementDone(PlayerAdvancementDoneEvent event) {
-    postChat(rawAdvancement.replaceAll(playerPH, event.getPlayer().getName()).replaceAll(advancementPH, event.getAdvancement().getKey().getKey()));
+    String advancementName = event.getAdvancement().getKey().getKey();
+    // prevent new recipes also being sent
+    if (!event.getAdvancement().getKey().getKey().startsWith("recipes")) {
+      postChat(rawAdvancement.replaceAll(playerPH, event.getPlayer().getName())
+          .replaceAll(advancementPH, advancementName));
+    };
   }
 
   @EventHandler
   public void onPlayerBroadcast(PlayerCommandPreprocessEvent event) {
     if (event.getMessage().substring(0, 5).equalsIgnoreCase("/say ")) {
-      postChat(rawSay.replaceAll(playerPH, event.getPlayer().getName()).replaceAll(chatPH, event.getMessage().substring(5).replace("\\", "\\\\")));
+      postChat(rawSay.replaceAll(playerPH, event.getPlayer().getName())
+          .replaceAll(chatPH, event.getMessage().substring(5).replace("\\", "\\\\")));
     } else if (event.getMessage().substring(0, 4).equalsIgnoreCase("/me ")) {
-      postChat(rawMe.replaceAll(playerPH, event.getPlayer().getName()).replaceAll(chatPH, event.getMessage().substring(4).replace("\\", "\\\\")));
+      postChat(rawMe.replaceAll(playerPH, event.getPlayer().getName())
+          .replaceAll(chatPH, event.getMessage().substring(4).replace("\\", "\\\\")));
     };
   }
   @EventHandler
   public void onServerBroadcast(ServerCommandEvent event) {
     if (event.getCommand().substring(0, 4).equalsIgnoreCase("say ")) {
-      postChat(rawSay.replaceAll(playerPH, event.getSender().getName()).replaceAll(chatPH, event.getCommand().substring(4).replace("\\", "\\\\")));
+      postChat(rawSay.replaceAll(playerPH, event.getSender().getName())
+          .replaceAll(chatPH, event.getCommand().substring(4).replace("\\", "\\\\")));
     } else if (event.getCommand().substring(0, 3).equalsIgnoreCase("me ")) {
-      postChat(rawMe.replaceAll(playerPH, event.getSender().getName()).replaceAll(chatPH, event.getCommand().substring(3).replace("\\", "\\\\")));
+      postChat(rawMe.replaceAll(playerPH, event.getSender().getName())
+          .replaceAll(chatPH, event.getCommand().substring(3).replace("\\", "\\\\")));
     };
   }
 }

@@ -1,14 +1,14 @@
 # SendChat
 
-A plugin that sends server start/stop, player join/quit, chat, and advancement messages on a Minecraft Spigot server to a specific web page.
+A plugin that sends server start/stop, player join/quit, chat, and advancement messages from a Minecraft Spigot server to a specific web page.
 
-This can be used with a local api to post messages on other platforms.
+This can be used with an API running locally to send messages and post on other platforms.
 
-*Please note that this plugin is in its initial development stage and thus lacks many important features. Stability issues may frequently occur.*
+*Please note that this plugin is in its initial stage and thus many important features are yet to be developed. Stability issues may occur.*
 
 ## Requirement
 
-This plugin requires **1.16.4 Spigot** servers (forks such as Paper are fine) running at least **Java 11** (due to the *HttpClient* used). 
+This plugin requires **1.16.4 Spigot** servers (forks such as Paper are fine) with at least **Java 11** (due to the *HttpClient* used). 
 
 ## Configuration
 
