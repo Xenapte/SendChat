@@ -1,0 +1,11 @@
+name: SendChat
+main: info.bcrc.mc.sendchat.SendChat
+version: 0.3.3
+api-version: 1.16
+author: Xenapte
+commands:
+  sendchat:
+    description: SendChat plugin settings.
+    usage: /sendchat <reload|shutdown>
+    permission: sendchat.permission
+    permission-message: You don't have permission <sendchat.permission>!

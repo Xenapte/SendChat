@@ -1,0 +1,41 @@
+# "url": link to send the message. Only this needs to and must be specified manually.
+# The plugin will send a message there every time the server start / stops, plugin reloads / shuts down,
+# or when a server-wide chat event (joins/quits, chats, advancements, /say command) takes place.
+
+# Arguments to be used in all configurations except "url":
+# {player} = player name; {chat} = chat message; {advancement} = advancement; {version} = plugin version.
+
+# However, only {message} (as the *full message* of all other configurations) can be used in "destination". 
+# There are three methods available: get, post-form, post-json. Default is "get".
+# When using post methods you also need to specify the "post-data".
+
+# Example url (get method): 'http://127.0.0.1:8080/send_msg?msg={message}&from=plugin'
+# Example post-data (post-json method): '{"msg": "{message}"}'
+# Example chat: '<{player}> {chat}'
+
+# Note: white space characters on both side of messages will be removed.
+# If your custom message contains special characters, quote the entire message with quotation marks.
+
+# These settings only affect messages posted to the URL. Messages in-game / in the console will never change.
+
+# "say-command" and "me-command" stands for the message-broadcasting /say and /me command. 
+# It does not necessarily need to be regarded as a player chat message; here the {player}/{chat} is used for convenience.
+
+destination: 
+  url: ''
+  method: 'get'
+  post-data: ''
+
+server-start: 'Server started with SendChat v{version}'
+server-stop: 'Server stopped'
+
+join: '{player} joined the game'
+quit: '{player} left the game'
+
+chat: '<{player}> {chat}'
+advancement: '{player} has made the advancement [{advancement}]'
+say-command: '[{player}] {chat}'
+me-command: '* {player} {chat}'
+
+plugin-reload: 'SendChat v{version} reloaded'
+plugin-shutdown: 'SendChat v{version} shut down'
