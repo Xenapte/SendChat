@@ -1,12 +1,12 @@
 # "url": link to send the message. Only this needs to and must be specified manually.
 # The plugin will send a message there every time the server start / stops, plugin reloads / shuts down,
-# or when a server-wide chat event (joins/quits, chats, advancements, /say command) takes place.
+# or when a server-wide chat event (player joins/quits, chats, advancements, /say command) takes place.
 
-# Arguments to be used in all configurations except "url":
+# Arguments to be used in all configurations except "destination":
 # {player} = player name; {chat} = chat message; {advancement} = advancement; {version} = plugin version.
 
 # However, only {message} (as the *full message* of all other configurations) can be used in "destination". 
-# There are three methods available: get, post-form, post-json. Default is "get".
+# There are three methods available: get, post-form, post-json. Any other methods default to "get".
 # When using post methods you also need to specify the "post-data".
 
 # Example url (get method): 'http://127.0.0.1:8080/send_msg?msg={message}&from=plugin'
@@ -16,9 +16,9 @@
 # Note: white space characters on both side of messages will be removed.
 # If your custom message contains special characters, quote the entire message with quotation marks.
 
-# These settings only affect messages posted to the URL. Messages in-game / in the console will never change.
+# These settings only affect messages posted to the destination. Messages in-game / in the console will never change.
 
-# "say-command" and "me-command" stands for the message-broadcasting /say and /me command. 
+# "say-command" and "me-command" stand for the message-broadcasting /say and /me command. 
 # It does not necessarily need to be regarded as a player chat message; here the {player}/{chat} is used for convenience.
 
 destination: 
