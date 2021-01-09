@@ -10,4 +10,4 @@ This plugin requires Spigot servers (forks like Paper are fine) running at least
 
 ## Configuration
 
-For plugin configuration, see [config.yml](src/main/resources/config.yml).
+***WIP***. For plugin configuration, see [config.yml](src/main/resources/config.yml).
