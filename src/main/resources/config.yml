@@ -21,6 +21,9 @@
 # "say-command" and "me-command" stand for the message-broadcasting /say and /me command. 
 # It does not necessarily need to be regarded as a player chat message; here the {player}/{chat} is used for convenience.
 
+# Due to the way death events are implemented in the API, it is not easy to modify the message; 
+# better to leave it as-is.
+
 destination: 
   url: ''
   method: 'get'
@@ -36,6 +39,8 @@ chat: '<{player}> {chat}'
 advancement: '{player} has made the advancement [{advancement}]'
 say-command: '[{player}] {chat}'
 me-command: '* {player} {chat}'
+
+death: '{chat}'
 
 plugin-reload: 'SendChat v{version} reloaded'
 plugin-shutdown: 'SendChat v{version} shut down'

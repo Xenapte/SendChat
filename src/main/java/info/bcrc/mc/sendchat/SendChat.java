@@ -18,15 +18,15 @@ import org.bukkit.event.player.AsyncPlayerChatEvent;
 import org.bukkit.event.player.PlayerAdvancementDoneEvent;
 import org.bukkit.event.player.PlayerCommandPreprocessEvent;
 import org.bukkit.event.server.ServerCommandEvent;
+import org.bukkit.event.entity.PlayerDeathEvent;
 import org.bukkit.configuration.file.FileConfiguration;
 import org.bukkit.ChatColor;
-import org.bukkit.Color;
 import org.bukkit.command.Command;
 import org.bukkit.command.CommandSender;
 import org.bukkit.command.TabCompleter;
 
 public final class SendChat extends JavaPlugin implements Listener, TabCompleter {
-  private String rawUrl, rawJoin, rawQuit, rawChat, rawAdvancement, rawSay, rawMe, rawPost,
+  private String rawUrl, rawJoin, rawQuit, rawChat, rawAdvancement, rawSay, rawMe, rawPost, rawDeath,
   version = this.getDescription().getVersion(), method,
   msgPH = "\\{message\\}", playerPH = "\\{player\\}", chatPH = "\\{chat\\}",
   verPH = "\\{version\\}", advancementPH = "\\{advancement\\}";
@@ -101,6 +101,7 @@ public final class SendChat extends JavaPlugin implements Listener, TabCompleter
     config.addDefault("advancement", "{player} has made the advancement [{advancement}]");
     config.addDefault("say-command", "[{player}] {chat}");
     config.addDefault("me-command", "* {player} {chat}");
+    config.addDefault("death", "{chat}");
     
     config.options().copyDefaults(true);
     saveDefaultConfig();
@@ -114,6 +115,7 @@ public final class SendChat extends JavaPlugin implements Listener, TabCompleter
     rawAdvancement = config.getString("advancement").trim();
     rawSay = config.getString("say-command").trim();
     rawMe = config.getString("me-command").trim();
+    rawDeath = config.getString("death").trim();
     method = config.getString("destination.method").trim();
     if (method.equalsIgnoreCase("post-form") || method.equalsIgnoreCase("post-json")) {
       rawPost = config.getString("destination.post-data").trim();
@@ -239,5 +241,11 @@ public final class SendChat extends JavaPlugin implements Listener, TabCompleter
       postChat(rawMe.replaceAll(playerPH, event.getSender().getName())
           .replaceAll(chatPH, event.getCommand().substring(3).replace("\\", "\\\\")));
     };
+  }
+
+  @EventHandler
+  public void onPlayerDeath(PlayerDeathEvent event) {
+    postChat(rawDeath.replaceAll(playerPH, event.getEntity().getName())
+        .replaceAll(chatPH, event.getDeathMessage().replace("\\", "\\\\")));
   }
 }
