@@ -29,18 +29,31 @@ destination:
   method: 'get'
   post-data: ''
 
-server-start: 'Server started with SendChat v{version}'
-server-stop: 'Server stopped'
+server-status:
+  enabled: true
+  server-start: 'Server started with SendChat v{version}'
+  server-stop: 'Server stopped'
 
-join: '{player} joined the game'
-quit: '{player} left the game'
+player-log:
+  enabled: true
+  join: '{player} joined the game'
+  quit: '{player} left the game'
 
-chat: '<{player}> {chat}'
-advancement: '{player} has made the advancement [{advancement}]'
-say-command: '[{player}] {chat}'
-me-command: '* {player} {chat}'
+public-message:
+  chat: '<{player}> {chat}'
+  say-command: '[{player}] {chat}'
+  me-command: '* {player} {chat}'
 
-death: '{chat}'
+player-interaction:
+  enabled: true
+  advancement: '{player} has made the advancement [{advancement}]'
+  treat-recipes-as-advancements: false
 
-plugin-reload: 'SendChat v{version} reloaded'
-plugin-shutdown: 'SendChat v{version} shut down'
+player-status:
+  enabled: true
+  death: '{chat}'
+
+plugin-status:
+  enabled: true
+  reload: 'SendChat v{version} reloaded'
+  shutdown: 'SendChat v{version} shut down'

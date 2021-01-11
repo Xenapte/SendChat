@@ -30,6 +30,8 @@ public final class SendChat extends JavaPlugin implements Listener, TabCompleter
   version = this.getDescription().getVersion(), method,
   msgPH = "\\{message\\}", playerPH = "\\{player\\}", chatPH = "\\{chat\\}",
   verPH = "\\{version\\}", advancementPH = "\\{advancement\\}";
+  private Boolean enabledServerStatus, enabledPlayerLog, enabledPublicMsg,
+    enabledPlayerInteract, enabledPlayerStatus, enabledPluginStatus, recipeAdvancement;
   private FileConfiguration config;
   
   private String escapeJson(String text) {
@@ -91,17 +93,25 @@ public final class SendChat extends JavaPlugin implements Listener, TabCompleter
     config.addDefault("destination.url", "");
     config.addDefault("destination.method", "get");
     config.addDefault("destination.post-data", "");
-    config.addDefault("server-start", "Server started with SendChat v{version}");
-    config.addDefault("server-stop", "Server stopped");
-    config.addDefault("plugin-reload", "SendChat v{version} reloaded");
-    config.addDefault("plugin-shutdown", "SendChat v{version} shut down");
-    config.addDefault("join", "{player} joined the game");
-    config.addDefault("quit", "{player} left the game");
-    config.addDefault("chat", "<{player}> {chat}");
-    config.addDefault("advancement", "{player} has made the advancement [{advancement}]");
-    config.addDefault("say-command", "[{player}] {chat}");
-    config.addDefault("me-command", "* {player} {chat}");
-    config.addDefault("death", "{chat}");
+    config.addDefault("server-status.server-start", "Server started with SendChat v{version}");
+    config.addDefault("server-status.server-stop", "Server stopped");
+    config.addDefault("plugin-status.reload", "SendChat v{version} reloaded");
+    config.addDefault("plugin-status.shutdown", "SendChat v{version} shut down");
+    config.addDefault("player-log.join", "{player} joined the game");
+    config.addDefault("player-log.quit", "{player} left the game");
+    config.addDefault("public-message.chat", "<{player}> {chat}");
+    config.addDefault("public-message.say-command", "[{player}] {chat}");
+    config.addDefault("public-message.me-command", "* {player} {chat}");
+    config.addDefault("player-interaction.advancement", "{player} has made the advancement [{advancement}]");
+    config.addDefault("player-status.death", "{chat}");
+
+    config.addDefault("server-status.enabled", "true");
+    config.addDefault("player-log.enabled", "true");
+    config.addDefault("public-message.enabled", "true");
+    config.addDefault("player-interaction.enabled", "true");
+    config.addDefault("player-status.enabled", "true");
+    config.addDefault("plugin-status.enabled", "true");
+    config.addDefault("player-interaction.treat-recipes-as-advancements", "false");
     
     config.options().copyDefaults(true);
     saveDefaultConfig();
@@ -109,13 +119,22 @@ public final class SendChat extends JavaPlugin implements Listener, TabCompleter
   }
   
   private void loadSCConfig() {
-    rawJoin = config.getString("join").trim();
-    rawQuit = config.getString("quit").trim();
-    rawChat = config.getString("chat").trim();
-    rawAdvancement = config.getString("advancement").trim();
-    rawSay = config.getString("say-command").trim();
-    rawMe = config.getString("me-command").trim();
-    rawDeath = config.getString("death").trim();
+    rawJoin = config.getString("player-log.join").trim();
+    rawQuit = config.getString("player-log.quit").trim();
+    rawChat = config.getString("public-message.chat").trim();
+    rawSay = config.getString("public-message.say-command").trim();
+    rawMe = config.getString("public-message.me-command").trim();
+    rawAdvancement = config.getString("player-interaction.advancement").trim();
+    rawDeath = config.getString("player-status.death").trim();
+    
+    enabledServerStatus = config.getBoolean("server-status.enabled");
+    enabledPlayerLog = config.getBoolean("player-log.enabled");
+    enabledPublicMsg = config.getBoolean("public-message.enabled");
+    enabledPlayerInteract = config.getBoolean("player-interaction.enabled");
+    enabledPlayerStatus = config.getBoolean("player-status.enabled");
+    enabledPluginStatus = config.getBoolean("plugin-status.enabled");
+    recipeAdvancement = config.getBoolean("player-interaction.treat-recipes-as-advancements");
+    
     method = config.getString("destination.method").trim();
     if (method.equalsIgnoreCase("post-form") || method.equalsIgnoreCase("post-json")) {
       rawPost = config.getString("destination.post-data").trim();
@@ -143,7 +162,9 @@ public final class SendChat extends JavaPlugin implements Listener, TabCompleter
     loadSCConfig();
     if (processUrl()) {
       getLogger().info("SendChat v" + version + " enabled successfully!");
-      postChat(config.getString("server-start").trim().replaceAll(verPH, version));
+      if (enabledServerStatus) {
+        postChat(config.getString("server-status.server-start").trim().replaceAll(verPH, version));
+      };
     } else {
       return;
     };
@@ -151,7 +172,9 @@ public final class SendChat extends JavaPlugin implements Listener, TabCompleter
   
   @Override
   public void onDisable() {
-    postChat(config.getString("server-stop").trim().replaceAll(verPH, version));
+    if (enabledServerStatus) {
+      postChat(config.getString("server-status.server-stop").trim().replaceAll(verPH, version));
+    };
   }
   
   @Override
@@ -165,12 +188,16 @@ public final class SendChat extends JavaPlugin implements Listener, TabCompleter
           loadSCConfig();
           if (processUrl()) {
             sender.sendMessage(ChatColor.GREEN + "SendChat v" + version + " reloaded successfully!");
-            postChat(config.getString("plugin-reload").trim().replaceAll(verPH, version));
+            if (enabledPluginStatus) {
+              postChat(config.getString("plugin-status.reload").trim().replaceAll(verPH, version));
+            };
           };
         } else if (args[0].equalsIgnoreCase("shutdown")) {
           if (args.length > 1 && args[1].equalsIgnoreCase("confirm")) {
             sender.sendMessage("SendChat v" + version + " shutting down ...");
-            postChat(config.getString("plugin-shutdown").trim().replaceAll(verPH, version));
+            if (enabledPluginStatus) {
+              postChat(config.getString("plugin-status.shutdown").trim().replaceAll(verPH, version));
+            };
             disableSendChat();
           } else {
             sender.sendMessage(ChatColor.RED + "Note once shut down the plugin cannot be reactivated unless you reload the server!");
@@ -199,53 +226,67 @@ public final class SendChat extends JavaPlugin implements Listener, TabCompleter
   
   @EventHandler
   public void onPlayerJoin(PlayerJoinEvent event) {
-    postChat(rawJoin.replaceAll(playerPH, event.getPlayer().getName().replace("\\", "\\\\")));
+    if (enabledPlayerLog) {
+      postChat(rawJoin.replaceAll(playerPH, event.getPlayer().getName().replace("\\", "\\\\")));
+    };
   }
   @EventHandler
   public void onPlayerQuit(PlayerQuitEvent event) {
-    postChat(rawQuit.replaceAll(playerPH, event.getPlayer().getName().replace("\\", "\\\\")));
+    if (enabledPlayerLog) {
+      postChat(rawQuit.replaceAll(playerPH, event.getPlayer().getName().replace("\\", "\\\\")));
+    };
   }
   
   @EventHandler
   public void onPlayerChat(AsyncPlayerChatEvent event) {
-    postChat(rawChat.replaceAll(playerPH, event.getPlayer().getName())
-        .replaceAll(chatPH, event.getMessage().replace("\\", "\\\\")));
+    if (enabledPublicMsg) {
+      postChat(rawChat.replaceAll(playerPH, event.getPlayer().getName())
+          .replaceAll(chatPH, event.getMessage().replace("\\", "\\\\")));
+    };
   }
   
   @EventHandler
   public void onAdvancementDone(PlayerAdvancementDoneEvent event) {
-    String advancementName = event.getAdvancement().getKey().getKey();
-    // prevent new recipes also being sent
-    if (!event.getAdvancement().getKey().getKey().startsWith("recipes")) {
-      postChat(rawAdvancement.replaceAll(playerPH, event.getPlayer().getName())
-          .replaceAll(advancementPH, advancementName));
+    if (enabledPlayerInteract) {
+      String advancementName = event.getAdvancement().getKey().getKey();
+      // prevent new recipes also being sent
+      if (!event.getAdvancement().getKey().getKey().startsWith("recipes") || recipeAdvancement) {
+        postChat(rawAdvancement.replaceAll(playerPH, event.getPlayer().getName())
+            .replaceAll(advancementPH, advancementName));
+      };
     };
   }
 
   @EventHandler
   public void onPlayerBroadcast(PlayerCommandPreprocessEvent event) {
-    if (event.getMessage().substring(0, 5).equalsIgnoreCase("/say ")) {
-      postChat(rawSay.replaceAll(playerPH, event.getPlayer().getName())
-          .replaceAll(chatPH, event.getMessage().substring(5).replace("\\", "\\\\")));
-    } else if (event.getMessage().substring(0, 4).equalsIgnoreCase("/me ")) {
-      postChat(rawMe.replaceAll(playerPH, event.getPlayer().getName())
-          .replaceAll(chatPH, event.getMessage().substring(4).replace("\\", "\\\\")));
+    if (enabledPublicMsg) {
+      if (event.getMessage().substring(0, 5).equalsIgnoreCase("/say ")) {
+        postChat(rawSay.replaceAll(playerPH, event.getPlayer().getName())
+            .replaceAll(chatPH, event.getMessage().substring(5).replace("\\", "\\\\")));
+      } else if (event.getMessage().substring(0, 4).equalsIgnoreCase("/me ")) {
+        postChat(rawMe.replaceAll(playerPH, event.getPlayer().getName())
+            .replaceAll(chatPH, event.getMessage().substring(4).replace("\\", "\\\\")));
+      };
     };
   }
   @EventHandler
   public void onServerBroadcast(ServerCommandEvent event) {
-    if (event.getCommand().substring(0, 4).equalsIgnoreCase("say ")) {
-      postChat(rawSay.replaceAll(playerPH, event.getSender().getName())
-          .replaceAll(chatPH, event.getCommand().substring(4).replace("\\", "\\\\")));
-    } else if (event.getCommand().substring(0, 3).equalsIgnoreCase("me ")) {
-      postChat(rawMe.replaceAll(playerPH, event.getSender().getName())
-          .replaceAll(chatPH, event.getCommand().substring(3).replace("\\", "\\\\")));
+    if (enabledPublicMsg) {
+      if (event.getCommand().substring(0, 4).equalsIgnoreCase("say ")) {
+        postChat(rawSay.replaceAll(playerPH, event.getSender().getName())
+            .replaceAll(chatPH, event.getCommand().substring(4).replace("\\", "\\\\")));
+      } else if (event.getCommand().substring(0, 3).equalsIgnoreCase("me ")) {
+        postChat(rawMe.replaceAll(playerPH, event.getSender().getName())
+            .replaceAll(chatPH, event.getCommand().substring(3).replace("\\", "\\\\")));
+      };
     };
   }
 
   @EventHandler
   public void onPlayerDeath(PlayerDeathEvent event) {
-    postChat(rawDeath.replaceAll(playerPH, event.getEntity().getName())
-        .replaceAll(chatPH, event.getDeathMessage().replace("\\", "\\\\")));
+    if (enabledPlayerStatus) {
+      postChat(rawDeath.replaceAll(playerPH, event.getEntity().getName())
+          .replaceAll(chatPH, event.getDeathMessage().replace("\\", "\\\\")));
+    };
   }
 }
