@@ -105,13 +105,13 @@ public final class SendChat extends JavaPlugin implements Listener, TabCompleter
     config.addDefault("player-interaction.advancement", "{player} has made the advancement [{advancement}]");
     config.addDefault("player-status.death", "{chat}");
 
-    config.addDefault("server-status.enabled", "true");
-    config.addDefault("player-log.enabled", "true");
-    config.addDefault("public-message.enabled", "true");
-    config.addDefault("player-interaction.enabled", "true");
-    config.addDefault("player-status.enabled", "true");
-    config.addDefault("plugin-status.enabled", "true");
-    config.addDefault("player-interaction.treat-recipes-as-advancements", "false");
+    config.addDefault("server-status.enabled", true);
+    config.addDefault("player-log.enabled", true);
+    config.addDefault("public-message.enabled", true);
+    config.addDefault("player-interaction.enabled", true);
+    config.addDefault("player-status.enabled", true);
+    config.addDefault("plugin-status.enabled", true);
+    config.addDefault("player-interaction.treat-recipes-as-advancements", false);
     
     config.options().copyDefaults(true);
     saveDefaultConfig();
