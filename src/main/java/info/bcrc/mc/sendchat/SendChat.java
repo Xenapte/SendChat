@@ -29,6 +29,7 @@ public final class SendChat extends JavaPlugin implements Listener, TabCompleter
   verPH = "\\{version\\}", advancementPH = "\\{advancement\\}";
   private Boolean enabledServerStatus, enabledPlayerLog, enabledPublicMsg,
     enabledPlayerInteract, enabledPlayerStatus, enabledPluginStatus, recipeAdvancement;
+  private Boolean errorStatus = false;
   private FileConfiguration config;
   
   private String escapeJson(String text) {
@@ -78,6 +79,7 @@ public final class SendChat extends JavaPlugin implements Listener, TabCompleter
 
 
   private void disableSendChat() {
+    errorStatus = true;
     this.getServer().getPluginManager().disablePlugin(this);
   }
   
@@ -154,9 +156,11 @@ public final class SendChat extends JavaPlugin implements Listener, TabCompleter
     saveSCConfig();
     loadSCConfig();
     if (processUrl()) {
-      getLogger().info("SendChat v" + version + " enabled successfully!");
-      if (enabledServerStatus) {
-        postChat(config.getString("server-status.server-start").trim().replaceAll(verPH, version));
+      if (!errorStatus) {
+        getLogger().info("SendChat v" + version + " enabled successfully!");
+        if (enabledServerStatus) {
+          postChat(config.getString("server-status.server-start").trim().replaceAll(verPH, version));
+        };
       };
     } else {
       return;
@@ -165,7 +169,7 @@ public final class SendChat extends JavaPlugin implements Listener, TabCompleter
   
   @Override
   public void onDisable() {
-    if (enabledServerStatus) {
+    if (enabledServerStatus && !errorStatus) {
       postChat(config.getString("server-status.server-stop").trim().replaceAll(verPH, version));
     };
   }
@@ -253,24 +257,26 @@ public final class SendChat extends JavaPlugin implements Listener, TabCompleter
   @EventHandler
   public void onPlayerBroadcast(PlayerCommandPreprocessEvent event) {
     if (enabledPublicMsg) {
-      if (event.getMessage().substring(0, 5).equalsIgnoreCase("/say ")) {
+      String command = event.getMessage();
+      if (command.length() > 5 && command.substring(0, 5).equalsIgnoreCase("/say ")) {
         postChat(rawSay.replaceAll(playerPH, event.getPlayer().getName())
-            .replaceAll(chatPH, event.getMessage().substring(5).replace("\\", "\\\\")));
-      } else if (event.getMessage().substring(0, 4).equalsIgnoreCase("/me ")) {
+            .replaceAll(chatPH, command.substring(5).replace("\\", "\\\\")));
+      } else if (command.length() > 4 || command.substring(0, 4).equalsIgnoreCase("/me ")) {
         postChat(rawMe.replaceAll(playerPH, event.getPlayer().getName())
-            .replaceAll(chatPH, event.getMessage().substring(4).replace("\\", "\\\\")));
+            .replaceAll(chatPH, command.substring(4).replace("\\", "\\\\")));
       };
     };
   }
   @EventHandler
   public void onServerBroadcast(ServerCommandEvent event) {
     if (enabledPublicMsg) {
-      if (event.getCommand().substring(0, 4).equalsIgnoreCase("say ")) {
+      String command = event.getCommand();
+      if (command.length() > 4 && command.substring(0, 4).equalsIgnoreCase("say ")) {
         postChat(rawSay.replaceAll(playerPH, event.getSender().getName())
-            .replaceAll(chatPH, event.getCommand().substring(4).replace("\\", "\\\\")));
-      } else if (event.getCommand().substring(0, 3).equalsIgnoreCase("me ")) {
+            .replaceAll(chatPH, command.substring(4).replace("\\", "\\\\")));
+      } else if (command.length() > 3 && command.substring(0, 3).equalsIgnoreCase("me ")) {
         postChat(rawMe.replaceAll(playerPH, event.getSender().getName())
-            .replaceAll(chatPH, event.getCommand().substring(3).replace("\\", "\\\\")));
+            .replaceAll(chatPH, command.substring(3).replace("\\", "\\\\")));
       };
     };
   }

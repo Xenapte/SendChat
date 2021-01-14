@@ -1,6 +1,6 @@
 name: SendChat
 main: info.bcrc.mc.sendchat.SendChat
-version: 0.5.0
+version: 0.5.1
 api-version: 1.16
 author: Xenapte
 commands:

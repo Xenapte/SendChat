@@ -2,7 +2,7 @@
   <modelVersion>4.0.0</modelVersion>
   <groupId>info.bcrc.mc</groupId>
   <artifactId>SendChat</artifactId>
-  <version>0.5.0</version>
+  <version>0.5.1</version>
   <build>
       <plugins>
           <plugin>
