@@ -261,7 +261,7 @@ public final class SendChat extends JavaPlugin implements Listener, TabCompleter
       if (command.length() > 5 && command.substring(0, 5).equalsIgnoreCase("/say ")) {
         postChat(rawSay.replaceAll(playerPH, event.getPlayer().getName())
             .replaceAll(chatPH, command.substring(5).replace("\\", "\\\\")));
-      } else if (command.length() > 4 || command.substring(0, 4).equalsIgnoreCase("/me ")) {
+      } else if (command.length() > 4 && command.substring(0, 4).equalsIgnoreCase("/me ")) {
         postChat(rawMe.replaceAll(playerPH, event.getPlayer().getName())
             .replaceAll(chatPH, command.substring(4).replace("\\", "\\\\")));
       };
