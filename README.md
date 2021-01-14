@@ -8,7 +8,7 @@ This can be used with an API running locally to send messages and post on other 
 
 ## Requirement
 
-This plugin requires **1.16.4 Spigot** servers (forks such as Paper are fine) with at least **Java 11** (due to the *HttpClient* used). 
+This plugin requires **1.16.4 Spigot** servers (forks such as Paper are fine). 
 
 ## Configuration
 

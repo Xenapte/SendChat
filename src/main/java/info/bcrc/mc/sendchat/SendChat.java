@@ -1,15 +1,12 @@
 package info.bcrc.mc.sendchat;
 
 import org.bukkit.plugin.java.JavaPlugin;
-import java.net.URI;
+import java.io.IOException; 
+import java.net.HttpURLConnection; 
+import java.net.URL; 
 import java.net.URLEncoder;
-import java.net.http.HttpClient;
-import java.net.http.HttpRequest;
-import java.net.http.HttpResponse;
-import java.time.Duration;
 import java.util.Arrays;
 import java.util.List;
-import java.io.IOException;
 import org.bukkit.event.Listener;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.player.PlayerJoinEvent;
@@ -45,41 +42,37 @@ public final class SendChat extends JavaPlugin implements Listener, TabCompleter
         .replace("\t", "\\\t");
     return text;
   }
-  private final HttpClient httpClient = HttpClient.newBuilder()
-    .version(HttpClient.Version.HTTP_2)
-    .connectTimeout(Duration.ofSeconds(10))
-    .build();
   private void postChat(String rawText) {
     try {
-      String urlText = URLEncoder.encode(rawText, "UTF-8");
-      HttpRequest request;
+      HttpURLConnection connection;
       if (method.equalsIgnoreCase("post-form")) {
-        request = HttpRequest.newBuilder()
-            .POST(HttpRequest.BodyPublishers.ofString(rawPost.replaceAll(msgPH, urlText)))
-            .uri(URI.create(rawUrl))
-            .header("Content-Type", "application/x-www-form-urlencoded; charset=UTF-8")
-            .build();
+        String urlText = URLEncoder.encode(rawText, "UTF-8");
+        URL url = new URL(rawUrl);
+        connection = (HttpURLConnection) url.openConnection();
+        connection.setRequestMethod("POST");
+        connection.setRequestProperty("Content-Type", "application/x-www-form-urlencoded; charset=UTF-8");
+        connection.setDoOutput(true);
+        byte[] input = rawPost.replaceAll(msgPH, urlText).getBytes("utf-8");
+        connection.getOutputStream().write(input, 0, input.length);
       } else if (method.equalsIgnoreCase("post-json")) {
-          request = HttpRequest.newBuilder()
-            .POST(HttpRequest.BodyPublishers.ofString(rawPost.replaceAll(msgPH, escapeJson(rawText).replace("\\", "\\\\"))))
-            .uri(URI.create(rawUrl))
-            .header("Content-Type", "application/json; charset=UTF-8")
-            .build();
+        URL url = new URL(rawUrl);
+        connection = (HttpURLConnection) url.openConnection();
+        connection.setRequestMethod("POST");
+        connection.setRequestProperty("Content-Type", "application/json; charset=UTF-8");
+        connection.setDoOutput(true);
+        byte[] input = rawPost.replaceAll(msgPH, escapeJson(rawText).replace("\\", "\\\\")).getBytes("utf-8");
+        connection.getOutputStream().write(input, 0, input.length);
       } else { // GET
-        request = HttpRequest.newBuilder()
-            .GET()
-            .uri(URI.create(rawUrl.replaceAll(msgPH, urlText)))
-            .build();
+        String urlText = URLEncoder.encode(rawText, "UTF-8");
+        URL url = new URL(rawUrl.replaceAll(msgPH, urlText));
+        connection = (HttpURLConnection) url.openConnection();
+        connection.setRequestMethod("GET");
       };
-      try {
-        httpClient.send(request, HttpResponse.BodyHandlers.ofString());
-      } catch (IOException e) {
-        e.printStackTrace();
-      } catch (InterruptedException e) {
-        e.printStackTrace();
-      };
-    } catch (IOException uee) {
-      uee.printStackTrace();
+        connection.setInstanceFollowRedirects(true);
+        connection.getInputStream();
+        connection.disconnect();
+    } catch (IOException e) {
+      e.printStackTrace();
     };
   }
 
