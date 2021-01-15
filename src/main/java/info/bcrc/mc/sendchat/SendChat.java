@@ -253,32 +253,29 @@ public final class SendChat extends JavaPlugin implements Listener, TabCompleter
       };
     };
   }
+  
+  
+  private void sendPublicMsg(String command, String senderName) {
+    if (enabledPublicMsg) {
+      if (command.length() > 4 && command.substring(0, 4).equalsIgnoreCase("say ")) {
+        postChat(rawSay.replaceAll(playerPH, senderName)
+            .replaceAll(chatPH, command.substring(4).replace("\\", "\\\\")));
+      } else if (command.length() > 3 && command.substring(0, 3).equalsIgnoreCase("me ")) {
+        postChat(rawMe.replaceAll(playerPH, senderName)
+            .replaceAll(chatPH, command.substring(3).replace("\\", "\\\\")));
+    };
+  }
 
   @EventHandler
   public void onPlayerBroadcast(PlayerCommandPreprocessEvent event) {
-    if (enabledPublicMsg) {
-      String command = event.getMessage();
-      if (command.length() > 5 && command.substring(0, 5).equalsIgnoreCase("/say ")) {
-        postChat(rawSay.replaceAll(playerPH, event.getPlayer().getName())
-            .replaceAll(chatPH, command.substring(5).replace("\\", "\\\\")));
-      } else if (command.length() > 4 && command.substring(0, 4).equalsIgnoreCase("/me ")) {
-        postChat(rawMe.replaceAll(playerPH, event.getPlayer().getName())
-            .replaceAll(chatPH, command.substring(4).replace("\\", "\\\\")));
-      };
+    String command = event.getMessage();
+    if (command.length() > 1 && command.substring(0, 1).equals("/")) {
+      sendPublicMsg(event.getPlayer().getName(), command.substring(1));
     };
   }
   @EventHandler
   public void onServerBroadcast(ServerCommandEvent event) {
-    if (enabledPublicMsg) {
-      String command = event.getCommand();
-      if (command.length() > 4 && command.substring(0, 4).equalsIgnoreCase("say ")) {
-        postChat(rawSay.replaceAll(playerPH, event.getSender().getName())
-            .replaceAll(chatPH, command.substring(4).replace("\\", "\\\\")));
-      } else if (command.length() > 3 && command.substring(0, 3).equalsIgnoreCase("me ")) {
-        postChat(rawMe.replaceAll(playerPH, event.getSender().getName())
-            .replaceAll(chatPH, command.substring(3).replace("\\", "\\\\")));
-      };
-    };
+    sendPublicMsg(event.getCommand(), event.getSender().getName());
   }
 
   @EventHandler
