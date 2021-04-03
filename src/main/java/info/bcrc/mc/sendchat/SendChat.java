@@ -20,9 +20,8 @@ import org.bukkit.configuration.file.FileConfiguration;
 import org.bukkit.ChatColor;
 import org.bukkit.command.Command;
 import org.bukkit.command.CommandSender;
-import org.bukkit.command.TabCompleter;
 
-public final class SendChat extends JavaPlugin implements Listener, TabCompleter {
+public final class SendChat extends JavaPlugin implements Listener {
   private String rawUrl, rawJoin, rawQuit, rawChat, rawAdvancement, rawSay, rawMe, rawPost, rawDeath,
   version = this.getDescription().getVersion(), method,
   msgPH = "\\{message\\}", playerPH = "\\{player\\}", chatPH = "\\{chat\\}",
@@ -69,9 +68,9 @@ public final class SendChat extends JavaPlugin implements Listener, TabCompleter
         connection = (HttpURLConnection) url.openConnection();
         connection.setRequestMethod("GET");
       };
-        connection.setInstanceFollowRedirects(true);
-        connection.getInputStream();
-        connection.disconnect();
+      connection.setInstanceFollowRedirects(true);
+      connection.getInputStream();
+      connection.disconnect();
     } catch (IOException e) {
       e.printStackTrace();
     };
