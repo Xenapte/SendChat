@@ -7,29 +7,20 @@ import java.net.URL;
 import java.net.URLEncoder;
 import java.util.Arrays;
 import java.util.List;
-import org.bukkit.event.Listener;
-import org.bukkit.event.EventHandler;
-import org.bukkit.event.player.PlayerJoinEvent;
-import org.bukkit.event.player.PlayerQuitEvent;
-import org.bukkit.event.player.AsyncPlayerChatEvent;
-import org.bukkit.event.player.PlayerAdvancementDoneEvent;
-import org.bukkit.event.player.PlayerCommandPreprocessEvent;
-import org.bukkit.event.server.ServerCommandEvent;
-import org.bukkit.event.entity.PlayerDeathEvent;
 import org.bukkit.configuration.file.FileConfiguration;
 import org.bukkit.ChatColor;
 import org.bukkit.command.Command;
 import org.bukkit.command.CommandSender;
 
-public final class SendChat extends JavaPlugin implements Listener {
-  private String rawUrl, rawJoin, rawQuit, rawChat, rawAdvancement, rawSay, rawMe, rawPost, rawDeath,
-  version = this.getDescription().getVersion(), method,
-  msgPH = "\\{message\\}", playerPH = "\\{player\\}", chatPH = "\\{chat\\}",
-  verPH = "\\{version\\}", advancementPH = "\\{advancement\\}";
-  private Boolean enabledServerStatus, enabledPlayerLog, enabledPublicMsg,
-    enabledPlayerInteract, enabledPlayerStatus, enabledPluginStatus, recipeAdvancement;
+public final class SendChat extends JavaPlugin {
+  private String rawUrl, rawPost,
+      version = this.getDescription().getVersion(), method,
+      msgPH = "\\{message\\}", verPH = "\\{version\\}";
+  private Boolean enabledServerStatus, enabledPluginStatus;
   private Boolean errorStatus = false;
   private FileConfiguration config;
+
+  ChatListener cl = new ChatListener();
   
   private String escapeJson(String text) {
     text = text
@@ -42,7 +33,7 @@ public final class SendChat extends JavaPlugin implements Listener {
         .replace("\t", "\\\t");
     return text;
   }
-  private void postChat(String rawText) {
+  protected void postChat(String rawText) {
     try {
       HttpURLConnection connection;
       if (method.equalsIgnoreCase("post-form")) {
@@ -113,21 +104,21 @@ public final class SendChat extends JavaPlugin implements Listener {
   }
   
   private void loadSCConfig() {
-    rawJoin = config.getString("player-log.join").trim();
-    rawQuit = config.getString("player-log.quit").trim();
-    rawChat = config.getString("public-message.chat").trim();
-    rawSay = config.getString("public-message.say-command").trim();
-    rawMe = config.getString("public-message.me-command").trim();
-    rawAdvancement = config.getString("player-interaction.advancement").trim();
-    rawDeath = config.getString("player-status.death").trim();
+    cl.rawJoin = config.getString("player-log.join").trim();
+    cl.rawQuit = config.getString("player-log.quit").trim();
+    cl.rawChat = config.getString("public-message.chat").trim();
+    cl.rawSay = config.getString("public-message.say-command").trim();
+    cl.rawMe = config.getString("public-message.me-command").trim();
+    cl.rawAdvancement = config.getString("player-interaction.advancement").trim();
+    cl.rawDeath = config.getString("player-status.death").trim();
     
     enabledServerStatus = config.getBoolean("server-status.enabled");
-    enabledPlayerLog = config.getBoolean("player-log.enabled");
-    enabledPublicMsg = config.getBoolean("public-message.enabled");
-    enabledPlayerInteract = config.getBoolean("player-interaction.enabled");
-    enabledPlayerStatus = config.getBoolean("player-status.enabled");
+    cl.enabledPlayerLog = config.getBoolean("player-log.enabled");
+    cl.enabledPublicMsg = config.getBoolean("public-message.enabled");
+    cl.enabledPlayerInteract = config.getBoolean("player-interaction.enabled");
+    cl.enabledPlayerStatus = config.getBoolean("player-status.enabled");
     enabledPluginStatus = config.getBoolean("plugin-status.enabled");
-    recipeAdvancement = config.getBoolean("player-interaction.treat-recipes-as-advancements");
+    cl.recipeAdvancement = config.getBoolean("player-interaction.treat-recipes-as-advancements");
     
     method = config.getString("destination.method").trim();
     if (method.equalsIgnoreCase("post-form") || method.equalsIgnoreCase("post-json")) {
@@ -150,7 +141,8 @@ public final class SendChat extends JavaPlugin implements Listener {
   
   @Override
   public void onEnable() {
-    getServer().getPluginManager().registerEvents(this, this);
+    cl.sc = this;
+    getServer().getPluginManager().registerEvents(cl, this);
     config = getConfig();
     saveSCConfig();
     loadSCConfig();
@@ -218,71 +210,5 @@ public final class SendChat extends JavaPlugin implements Listener {
       return Arrays.asList("reload", "shutdown");
     };
     return null;
-  }
-  
-  @EventHandler
-  public void onPlayerJoin(PlayerJoinEvent event) {
-    if (enabledPlayerLog) {
-      postChat(rawJoin.replaceAll(playerPH, event.getPlayer().getName().replace("\\", "\\\\")));
-    };
-  }
-  @EventHandler
-  public void onPlayerQuit(PlayerQuitEvent event) {
-    if (enabledPlayerLog) {
-      postChat(rawQuit.replaceAll(playerPH, event.getPlayer().getName().replace("\\", "\\\\")));
-    };
-  }
-  
-  @EventHandler
-  public void onPlayerChat(AsyncPlayerChatEvent event) {
-    if (enabledPublicMsg) {
-      postChat(rawChat.replaceAll(playerPH, event.getPlayer().getName())
-          .replaceAll(chatPH, event.getMessage().replace("\\", "\\\\")));
-    };
-  }
-  
-  @EventHandler
-  public void onAdvancementDone(PlayerAdvancementDoneEvent event) {
-    if (enabledPlayerInteract) {
-      String advancementName = event.getAdvancement().getKey().getKey();
-      // prevent new recipes also being sent
-      if (!event.getAdvancement().getKey().getKey().startsWith("recipes") || recipeAdvancement) {
-        postChat(rawAdvancement.replaceAll(playerPH, event.getPlayer().getName())
-            .replaceAll(advancementPH, advancementName));
-      };
-    };
-  }
-  
-  
-  private void sendPublicMsg(String command, String senderName) {
-    if (enabledPublicMsg) {
-      if (command.length() > 4 && command.substring(0, 4).equalsIgnoreCase("say ")) {
-        postChat(rawSay.replaceAll(playerPH, senderName)
-            .replaceAll(chatPH, command.substring(4).replace("\\", "\\\\")));
-      } else if (command.length() > 3 && command.substring(0, 3).equalsIgnoreCase("me ")) {
-        postChat(rawMe.replaceAll(playerPH, senderName)
-            .replaceAll(chatPH, command.substring(3).replace("\\", "\\\\")));
-      };
-    };
-  }
-
-  @EventHandler
-  public void onPlayerBroadcast(PlayerCommandPreprocessEvent event) {
-    String command = event.getMessage();
-    if (command.length() > 1 && command.substring(0, 1).equals("/")) {
-      sendPublicMsg(event.getPlayer().getName(), command.substring(1));
-    };
-  }
-  @EventHandler
-  public void onServerBroadcast(ServerCommandEvent event) {
-    sendPublicMsg(event.getCommand(), event.getSender().getName());
-  }
-
-  @EventHandler
-  public void onPlayerDeath(PlayerDeathEvent event) {
-    if (enabledPlayerStatus) {
-      postChat(rawDeath.replaceAll(playerPH, event.getEntity().getName())
-          .replaceAll(chatPH, event.getDeathMessage().replace("\\", "\\\\")));
-    };
   }
 }
