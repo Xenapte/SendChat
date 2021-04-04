@@ -74,7 +74,6 @@ public final class SendChat extends JavaPlugin {
   }
   
   private void saveSCConfig() {
-    // default
     config.addDefault("destination.url", "");
     config.addDefault("destination.method", "get");
     config.addDefault("destination.post-data", "");
@@ -128,7 +127,6 @@ public final class SendChat extends JavaPlugin {
   
   private boolean processUrl() {
     rawUrl = config.getString("destination.url").trim();
-    // disable the plugin when url is blank
     if (rawUrl == "") {
       getLogger().warning("URL for message posting is invalid. ");
       getLogger().warning("SendChat will be disabled until you provide a valid link and restart/reload the server!");
@@ -199,8 +197,7 @@ public final class SendChat extends JavaPlugin {
     };
     return false;
   }
-  
-  // Tab completion
+
   @Override
   public List<String> onTabComplete(CommandSender sender, Command command, String alias, String[] args) {
     if (command.getName().equalsIgnoreCase("sendchat")) {
