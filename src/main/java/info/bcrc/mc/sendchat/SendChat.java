@@ -20,7 +20,7 @@ public final class SendChat extends JavaPlugin {
   private Boolean errorStatus = false;
   private FileConfiguration config;
 
-  ChatListener cl = new ChatListener();
+  ChatListener cl;
   
   private String escapeJson(String text) {
     text = text
@@ -139,7 +139,7 @@ public final class SendChat extends JavaPlugin {
   
   @Override
   public void onEnable() {
-    cl.sc = this;
+    cl = new ChatListener(this);
     getServer().getPluginManager().registerEvents(cl, this);
     config = getConfig();
     saveSCConfig();

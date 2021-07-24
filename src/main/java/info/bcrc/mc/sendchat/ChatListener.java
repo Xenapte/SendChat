@@ -16,6 +16,10 @@ public class ChatListener implements Listener {
   protected String rawJoin, rawQuit, rawChat, rawAdvancement, rawSay, rawMe, rawDeath,
       playerPH = "\\{player\\}", chatPH = "\\{chat\\}", advancementPH = "\\{advancement\\}";
   protected SendChat sc;
+  
+  public ChatListener(SendChat sc) {
+    this.sc = sc;
+  };
 
   @EventHandler
   public void onPlayerJoin(PlayerJoinEvent event) {
@@ -67,7 +71,7 @@ public class ChatListener implements Listener {
   public void onPlayerBroadcast(PlayerCommandPreprocessEvent event) {
     String command = event.getMessage();
     if (command.length() > 1 && command.substring(0, 1).equals("/")) {
-      sendPublicMsg(event.getPlayer().getName(), command.substring(1));
+      sendPublicMsg(command.substring(1), event.getPlayer().getName());
     };
   }
   @EventHandler
